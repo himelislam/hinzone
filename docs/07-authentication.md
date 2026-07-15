@@ -768,7 +768,7 @@ Audit Log
 `POST /auth/forgot-password` always returns the same generic success message regardless of
 whether the email matches an account, so the endpoint cannot be used to enumerate registered
 emails. A raw, high-entropy token (not an OTP) is generated, hashed, and stored with an
-expiration loaded from **Security Settings** (fallback: `PASSWORD_RESET_TOKEN_EXPIRATION_MINUTES`).
+expiration loaded from **Security Settings** (`passwordResetTokenExpirationMinutes`).
 The raw token is never returned by the API or persisted in plain text.
 
 `POST /auth/reset-password` validates the token against its stored hash, rejects it if expired

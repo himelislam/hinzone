@@ -12,31 +12,15 @@ const environmentSchema = z.object({
   MONGODB_URI: z.string().min(1, 'MONGODB_URI is required'),
   JWT_ACCESS_SECRET: z.string().min(32, 'JWT_ACCESS_SECRET must be at least 32 characters'),
   JWT_REFRESH_SECRET: z.string().min(32, 'JWT_REFRESH_SECRET must be at least 32 characters'),
-  JWT_ACCESS_EXPIRATION: z
-    .string()
-    .regex(
-      /^\d+(\.\d+)?\s?(ms|s|m|h|d|w|y)$/i,
-      'JWT_ACCESS_EXPIRATION must be a duration such as "15m" or "7d"',
-    )
-    .default('15m'),
-  JWT_REFRESH_EXPIRATION: z
-    .string()
-    .regex(
-      /^\d+(\.\d+)?\s?(ms|s|m|h|d|w|y)$/i,
-      'JWT_REFRESH_EXPIRATION must be a duration such as "15m" or "7d"',
-    )
-    .default('7d'),
   CLOUDINARY_CLOUD_NAME: z.string().min(1, 'CLOUDINARY_CLOUD_NAME is required'),
   CLOUDINARY_API_KEY: z.string().min(1, 'CLOUDINARY_API_KEY is required'),
   CLOUDINARY_API_SECRET: z.string().min(1, 'CLOUDINARY_API_SECRET is required'),
-  // Fallback for initial setup; superseded by the Security Settings policy once the
-  // Settings module is available (same pattern as JWT_ACCESS_EXPIRATION above).
+  // Not part of SecuritySettings (docs/20-settings-system.md #19 lists JWT
+  // expiration, password policy, login attempts, session timeout, and 2FA - not a
+  // hashing cost factor) - changing this retroactively wouldn't rehash existing
+  // users' passwords anyway, so it stays an ops-level env var, not admin-editable.
   BCRYPT_SALT_ROUNDS: z.coerce.number().int().min(10).max(15).default(12),
-  // Same fallback pattern - see docs/07-authentication.md #23/#24.
-  MAX_LOGIN_ATTEMPTS: z.coerce.number().int().positive().default(5),
-  ACCOUNT_LOCK_DURATION_MINUTES: z.coerce.number().int().positive().default(15),
-  PASSWORD_RESET_TOKEN_EXPIRATION_MINUTES: z.coerce.number().int().positive().default(30),
-  // Same fallback pattern - see docs/07-authentication.md #27 (10 requests/minute/IP).
+  // Also not part of SecuritySettings - see docs/20 #19's field list above.
   AUTH_RATE_LIMIT_WINDOW_MINUTES: z.coerce.number().int().positive().default(1),
   AUTH_RATE_LIMIT_MAX_REQUESTS: z.coerce.number().int().positive().default(10),
   // docs/21-validation-rules.md #21 - "Maximum size should be configurable. Example: 5 MB."

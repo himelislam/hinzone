@@ -4,7 +4,7 @@ import { getAuthenticatedUserId } from '@/shared/helpers/get-authenticated-user-
 import { paginationResponse, successResponse } from '@/shared/response';
 import type { MongoIdParams } from '@/shared/validators/mongo-id.validator';
 
-import type { AuditContext } from '../audit-log/audit-log.types';
+import { buildAuditContext } from '../audit-log/audit-log.helpers';
 import { toUserResponse } from '../users/users.dto';
 import type {
   AdminUpdateUserRequestBody,
@@ -13,14 +13,6 @@ import type {
 } from '../users/users.validation';
 
 import { adminUsersService } from './admin-users.service';
-
-// Matches auth.controller.ts's buildRequestContext, narrowed to what an admin
-// audit entry needs - these routes never create a session, so no
-// device/browser/operatingSystem fields to capture.
-const buildAuditContext = (req: Request): AuditContext => ({
-  ipAddress: req.ip,
-  userAgent: req.headers['user-agent'],
-});
 
 const listUsers = async (req: Request, res: Response): Promise<void> => {
   const { page, limit, sort, order, search, role, status, dateFrom, dateTo } =

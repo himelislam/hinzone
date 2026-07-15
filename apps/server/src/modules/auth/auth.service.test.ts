@@ -1,7 +1,9 @@
-import { AccountStatus, UserRole } from 'shared-types';
+import { AccountStatus, SettingsCategory, UserRole } from 'shared-types';
 
 import { compareDummyPassword } from '@/config/bcrypt';
 import { verifyRefreshToken } from '@/config/jwt';
+import { SETTINGS_DEFAULTS } from '@/database/seed/settings-defaults';
+import { settingsService } from '@/modules/settings/settings.service';
 import { AuthenticationError, NotFoundError } from '@/shared/errors';
 
 import { auditLogRepository } from '../audit-log/audit-log.repository';
@@ -11,6 +13,7 @@ import { userService } from '../users/users.service';
 import type { UserDocument } from '../users/users.types';
 
 import { authService } from './auth.service';
+import { assertPasswordMeetsPolicy } from './password-policy.helpers';
 import { refreshTokenRepository } from './refresh-token.repository';
 import { sessionRepository } from './session.repository';
 import { tokenService } from './token.service';
@@ -19,21 +22,29 @@ jest.mock('../users/users.repository');
 jest.mock('../users/users.service');
 jest.mock('../audit-log/audit-log.repository');
 jest.mock('./token.service');
+jest.mock('./password-policy.helpers');
 jest.mock('./refresh-token.repository');
 jest.mock('./session.repository');
 jest.mock('@/config/jwt');
 jest.mock('@/config/bcrypt');
+jest.mock('@/modules/settings/settings.service');
 
 const mockedUserRepository = jest.mocked(userRepository);
 const mockedUserService = jest.mocked(userService);
 const mockedAuditLogRepository = jest.mocked(auditLogRepository);
 const mockedTokenService = jest.mocked(tokenService);
+const mockedAssertPasswordMeetsPolicy = jest.mocked(assertPasswordMeetsPolicy);
 const mockedRefreshTokenRepository = jest.mocked(refreshTokenRepository);
 const mockedSessionRepository = jest.mocked(sessionRepository);
 const mockedVerifyRefreshToken = jest.mocked(verifyRefreshToken);
 const mockedCompareDummyPassword = jest.mocked(compareDummyPassword);
+const mockedSettingsService = jest.mocked(settingsService);
 
 const FAKE_TOKENS = { accessToken: 'access', refreshToken: 'refresh', expiresIn: 900 };
+
+// The real seeded defaults - handleFailedLogin's maximumLoginAttempts/
+// accountLockDurationMinutes come from here now instead of securityConfig.
+const SECURITY_SETTINGS = SETTINGS_DEFAULTS[SettingsCategory.SECURITY];
 
 const buildUser = (overrides: Record<string, unknown> = {}): UserDocument =>
   ({
@@ -52,6 +63,8 @@ beforeEach(() => {
   jest.clearAllMocks();
   mockedTokenService.startSession.mockResolvedValue(FAKE_TOKENS);
   mockedTokenService.rotateRefreshToken.mockResolvedValue(FAKE_TOKENS);
+  mockedAssertPasswordMeetsPolicy.mockResolvedValue(undefined);
+  mockedSettingsService.getSecurity.mockResolvedValue(SECURITY_SETTINGS);
   // jest.clearAllMocks() only clears call history, not custom implementations -
   // re-establish the "token is valid" default here so only the test that
   // specifically wants a verification failure needs to override it.
@@ -193,7 +206,7 @@ describe('login', () => {
     const user = buildUser();
     (user.comparePassword as jest.Mock).mockResolvedValue(false);
     mockedUserRepository.findByLoginIdentifier.mockResolvedValue(user);
-    // MAX_LOGIN_ATTEMPTS defaults to 5 (config/environment.ts / .env.example).
+    // SECURITY_SETTINGS.maximumLoginAttempts above is 5.
     mockedUserRepository.incrementLoginAttempts.mockResolvedValue(buildUser({ loginAttempts: 5 }));
 
     await expect(authService.login(LOGIN_INPUT)).rejects.toThrow(AuthenticationError);

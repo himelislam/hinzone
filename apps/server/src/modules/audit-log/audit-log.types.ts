@@ -52,6 +52,10 @@ export const AUDIT_ACTIONS = {
   ADMIN_USER_UPDATED: 'ADMIN_USER_UPDATED',
   ADMIN_USER_STATUS_CHANGED: 'ADMIN_USER_STATUS_CHANGED',
   ADMIN_USER_DELETED: 'ADMIN_USER_DELETED',
+  // docs/20-settings-system.md #27 - one action for every category, since the
+  // category itself is already captured in entityId; before/after carry the
+  // actual previous/new values.
+  SETTINGS_UPDATED: 'SETTINGS_UPDATED',
 } as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS];

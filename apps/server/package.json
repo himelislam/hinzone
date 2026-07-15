@@ -12,7 +12,8 @@
     "start": "node dist/server.js",
     "lint": "eslint src",
     "format": "prettier --write src",
-    "test": "jest --passWithNoTests"
+    "test": "jest --passWithNoTests",
+    "seed:settings": "ts-node -r tsconfig-paths/register src/database/seed/run-seed-settings.ts"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

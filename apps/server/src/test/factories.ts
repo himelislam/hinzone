@@ -1,7 +1,8 @@
 import { randomInt } from 'node:crypto';
-import { AccountStatus, UserRole } from 'shared-types';
+import { AccountStatus, SettingsCategory, UserRole } from 'shared-types';
 
 import { signAccessToken } from '@/config/jwt';
+import { SETTINGS_DEFAULTS } from '@/database/seed/settings-defaults';
 import { User } from '@/modules/users/users.model';
 import type { IUser, UserDocument } from '@/modules/users/users.types';
 
@@ -76,7 +77,12 @@ export const createTestAdmin = (
 ): Promise<{ user: UserDocument; plainPassword: string }> =>
   createTestUser({ role: UserRole.ADMIN, ...overrides });
 
+// Matches the expiration connectTestDatabase() actually seeds (settings-defaults.ts),
+// rather than a separately hardcoded string that could silently drift from it.
 export const buildAccessToken = (user: UserDocument): string =>
-  signAccessToken({ userId: user.id, username: user.username, role: user.role });
+  signAccessToken(
+    { userId: user.id, username: user.username, role: user.role },
+    SETTINGS_DEFAULTS[SettingsCategory.SECURITY].jwtAccessExpiration,
+  );
 
 export const authHeaderFor = (user: UserDocument): string => `Bearer ${buildAccessToken(user)}`;

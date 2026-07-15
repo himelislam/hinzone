@@ -4,3 +4,6 @@ export * from './fields/password.schema';
 export * from './fields/email.schema';
 export * from './fields/full-name.schema';
 export * from './fields/referral-id.schema';
+export * from './fields/currency-rate.schema';
+export * from './fields/percentage.schema';
+export * from './fields/package-amount.schema';

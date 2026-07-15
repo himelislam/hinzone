@@ -2,7 +2,7 @@ import type { AuthTokens } from 'shared-types';
 
 import { compareDummyPassword } from '@/config/bcrypt';
 import { verifyRefreshToken } from '@/config/jwt';
-import { securityConfig } from '@/config/security';
+import { settingsService } from '@/modules/settings/settings.service';
 import { AuthenticationError, NotFoundError } from '@/shared/errors';
 import { hashToken } from '@/shared/helpers/hash-token';
 
@@ -16,6 +16,7 @@ import type { AuditContext } from '../audit-log/audit-log.types';
 
 import { isBlockedFromAuth } from './auth.helpers';
 import type { AuthRequestContext, LoginInput, RegisterInput } from './auth.types';
+import { assertPasswordMeetsPolicy } from './password-policy.helpers';
 import { passwordService } from './password.service';
 import { refreshTokenRepository } from './refresh-token.repository';
 import { sessionRepository } from './session.repository';
@@ -25,6 +26,8 @@ const register = async (
   input: RegisterInput,
   context: AuthRequestContext = {},
 ): Promise<{ user: UserDocument; tokens: AuthTokens }> => {
+  await assertPasswordMeetsPolicy(input.password);
+
   const sponsor = input.referrerId
     ? await userService.validateSponsorExists(input.referrerId)
     : undefined;
@@ -53,11 +56,13 @@ const handleFailedLogin = async (
   user: UserDocument,
   context: AuthRequestContext,
 ): Promise<void> => {
+  const { maximumLoginAttempts, accountLockDurationMinutes } = await settingsService.getSecurity();
+
   const updated = await userRepository.incrementLoginAttempts(user.id);
   const attempts = updated?.loginAttempts ?? user.loginAttempts + 1;
 
-  if (attempts >= securityConfig.maxLoginAttempts) {
-    const lockedUntil = new Date(Date.now() + securityConfig.accountLockDurationMinutes * 60_000);
+  if (attempts >= maximumLoginAttempts) {
+    const lockedUntil = new Date(Date.now() + accountLockDurationMinutes * 60_000);
     await userRepository.lockAccountUntil(user.id, lockedUntil);
     await auditLogRepository.logUserAction(user._id, AUDIT_ACTIONS.ACCOUNT_LOCKED, context);
   }

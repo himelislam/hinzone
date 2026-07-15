@@ -61,8 +61,9 @@ describe('POST /api/v1/auth/login', () => {
   it('locks the account after the configured number of failed attempts, then rejects even the correct password', async () => {
     const { user } = await createTestUser();
 
-    // MAX_LOGIN_ATTEMPTS defaults to 5 (config/environment.ts) - sequential on
-    // purpose, each attempt must increment the same counter deterministically.
+    // settings-defaults.ts's Security category seeds maximumLoginAttempts as 5 -
+    // sequential on purpose, each attempt must increment the same counter
+    // deterministically.
     for (let attempt = 0; attempt < 5; attempt += 1) {
       await login({ login: user.username, password: 'WrongPassword1!' });
     }

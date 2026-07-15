@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import type { Types } from 'mongoose';
 
-import { securityConfig } from '@/config/security';
+import { settingsService } from '@/modules/settings/settings.service';
 import { AuthenticationError, NotFoundError } from '@/shared/errors';
 import { hashToken } from '@/shared/helpers/hash-token';
 
@@ -12,6 +12,7 @@ import { AUDIT_ACTIONS } from '../audit-log/audit-log.types';
 import type { AuditContext } from '../audit-log/audit-log.types';
 
 import { isBlockedFromAuth } from './auth.helpers';
+import { assertPasswordMeetsPolicy } from './password-policy.helpers';
 import { passwordResetTokenRepository } from './password-reset-token.repository';
 import { refreshTokenRepository } from './refresh-token.repository';
 import { sessionRepository } from './session.repository';
@@ -40,10 +41,9 @@ const forgotPassword = async (
     return null;
   }
 
+  const { passwordResetTokenExpirationMinutes } = await settingsService.getSecurity();
   const rawToken = randomBytes(RESET_TOKEN_BYTES).toString('hex');
-  const expiresAt = new Date(
-    Date.now() + securityConfig.passwordResetTokenExpirationMinutes * 60_000,
-  );
+  const expiresAt = new Date(Date.now() + passwordResetTokenExpirationMinutes * 60_000);
 
   await passwordResetTokenRepository.create({
     userId: user._id,
@@ -67,6 +67,8 @@ const resetPassword = async (
   if (!stored || stored.used || stored.expiresAt.getTime() <= Date.now()) {
     throw new AuthenticationError('Reset token is invalid or has expired.');
   }
+
+  await assertPasswordMeetsPolicy(newPassword);
 
   const userId = stored.userId;
 
@@ -98,6 +100,8 @@ const changePassword = async (
   if (!currentPasswordMatches) {
     throw new AuthenticationError('Current password is incorrect.');
   }
+
+  await assertPasswordMeetsPolicy(newPassword);
 
   await userRepository.updatePassword(userId, newPassword);
   await invalidateAllSessions(user._id);

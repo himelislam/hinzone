@@ -4,11 +4,13 @@ import type { UserRole } from 'shared-types';
 
 import { env } from './environment';
 
+// Secrets only - expiration is a live Security Setting (SecuritySettings'
+// jwtAccessExpiration/jwtRefreshExpiration), not a static env value, so it's
+// passed into the sign functions below by the caller (token.service.ts) rather
+// than read from here. Keeps this config module free of a Settings dependency.
 export const jwtConfig = Object.freeze({
   accessSecret: env.JWT_ACCESS_SECRET,
   refreshSecret: env.JWT_REFRESH_SECRET,
-  accessExpiration: env.JWT_ACCESS_EXPIRATION,
-  refreshExpiration: env.JWT_REFRESH_EXPIRATION,
 });
 
 // Payload shape fixed by docs/07-authentication.md #12 - never add password,
@@ -19,9 +21,9 @@ export interface TokenPayload {
   readonly role: UserRole;
 }
 
-export const signAccessToken = (payload: TokenPayload): string =>
+export const signAccessToken = (payload: TokenPayload, expiresIn: string): string =>
   jwt.sign(payload, jwtConfig.accessSecret, {
-    expiresIn: jwtConfig.accessExpiration,
+    expiresIn,
     algorithm: 'HS256',
   } as jwt.SignOptions);
 
@@ -32,9 +34,9 @@ export const signAccessToken = (payload: TokenPayload): string =>
 // second insert outright. The `jti` (a standard registered JWT claim, not
 // application data - docs/07-authentication.md #12's payload restriction is
 // about business/sensitive fields) guarantees uniqueness regardless of timing.
-export const signRefreshToken = (payload: TokenPayload): string =>
+export const signRefreshToken = (payload: TokenPayload, expiresIn: string): string =>
   jwt.sign({ ...payload, jti: randomUUID() }, jwtConfig.refreshSecret, {
-    expiresIn: jwtConfig.refreshExpiration,
+    expiresIn,
     algorithm: 'HS256',
   } as jwt.SignOptions);
 

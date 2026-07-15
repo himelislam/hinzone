@@ -4,6 +4,17 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import AdminLayout from '@/layouts/AdminLayout';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import PublicLayout from '@/layouts/PublicLayout';
+import AdminSettingsPage from '@/pages/admin/settings/AdminSettingsPage';
+import CurrencySettingsPage from '@/pages/admin/settings/CurrencySettingsPage';
+import DepositSettingsPage from '@/pages/admin/settings/DepositSettingsPage';
+import GeneralSettingsPage from '@/pages/admin/settings/GeneralSettingsPage';
+import HomepageSettingsPage from '@/pages/admin/settings/HomepageSettingsPage';
+import MlmSettingsPage from '@/pages/admin/settings/MlmSettingsPage';
+import NotificationSettingsPage from '@/pages/admin/settings/NotificationSettingsPage';
+import SecuritySettingsPage from '@/pages/admin/settings/SecuritySettingsPage';
+import StockSettingsPage from '@/pages/admin/settings/StockSettingsPage';
+import TradingSettingsPage from '@/pages/admin/settings/TradingSettingsPage';
+import WithdrawalSettingsPage from '@/pages/admin/settings/WithdrawalSettingsPage';
 import ForgotPasswordPage from '@/pages/auth/ForgotPasswordPage';
 import LoginPage from '@/pages/auth/LoginPage';
 import RegisterPage from '@/pages/auth/RegisterPage';
@@ -54,6 +65,17 @@ const AppRoutes = (): JSX.Element => {
         <Route element={<AdminRoute />}>
           <Route element={<AdminLayout />}>
             <Route path="/admin" element={<RoutePlaceholder title="Admin Dashboard" />} />
+            <Route path="/admin/settings" element={<AdminSettingsPage />} />
+            <Route path="/admin/settings/general" element={<GeneralSettingsPage />} />
+            <Route path="/admin/settings/currency" element={<CurrencySettingsPage />} />
+            <Route path="/admin/settings/deposit" element={<DepositSettingsPage />} />
+            <Route path="/admin/settings/withdrawal" element={<WithdrawalSettingsPage />} />
+            <Route path="/admin/settings/trading" element={<TradingSettingsPage />} />
+            <Route path="/admin/settings/stocks" element={<StockSettingsPage />} />
+            <Route path="/admin/settings/mlm" element={<MlmSettingsPage />} />
+            <Route path="/admin/settings/homepage" element={<HomepageSettingsPage />} />
+            <Route path="/admin/settings/notifications" element={<NotificationSettingsPage />} />
+            <Route path="/admin/settings/security" element={<SecuritySettingsPage />} />
           </Route>
         </Route>
       </Route>

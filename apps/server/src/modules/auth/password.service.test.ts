@@ -1,5 +1,7 @@
-import { AccountStatus, UserRole } from 'shared-types';
+import { AccountStatus, SettingsCategory, UserRole } from 'shared-types';
 
+import { SETTINGS_DEFAULTS } from '@/database/seed/settings-defaults';
+import { settingsService } from '@/modules/settings/settings.service';
 import { AuthenticationError, NotFoundError } from '@/shared/errors';
 
 import { auditLogRepository } from '../audit-log/audit-log.repository';
@@ -7,6 +9,7 @@ import { AUDIT_ACTIONS } from '../audit-log/audit-log.types';
 import { userRepository } from '../users/users.repository';
 import type { UserDocument } from '../users/users.types';
 
+import { assertPasswordMeetsPolicy } from './password-policy.helpers';
 import { passwordResetTokenRepository } from './password-reset-token.repository';
 import { passwordService } from './password.service';
 import { refreshTokenRepository } from './refresh-token.repository';
@@ -14,15 +17,23 @@ import { sessionRepository } from './session.repository';
 
 jest.mock('../users/users.repository');
 jest.mock('../audit-log/audit-log.repository');
+jest.mock('./password-policy.helpers');
 jest.mock('./password-reset-token.repository');
 jest.mock('./refresh-token.repository');
 jest.mock('./session.repository');
+jest.mock('@/modules/settings/settings.service');
 
 const mockedUserRepository = jest.mocked(userRepository);
 const mockedAuditLogRepository = jest.mocked(auditLogRepository);
+const mockedAssertPasswordMeetsPolicy = jest.mocked(assertPasswordMeetsPolicy);
 const mockedResetTokenRepository = jest.mocked(passwordResetTokenRepository);
 const mockedRefreshTokenRepository = jest.mocked(refreshTokenRepository);
 const mockedSessionRepository = jest.mocked(sessionRepository);
+const mockedSettingsService = jest.mocked(settingsService);
+
+// The real seeded defaults - forgotPassword's passwordResetTokenExpirationMinutes
+// comes from here now instead of securityConfig.
+const SECURITY_SETTINGS = SETTINGS_DEFAULTS[SettingsCategory.SECURITY];
 
 const buildUser = (overrides: Record<string, unknown> = {}): UserDocument =>
   ({
@@ -36,6 +47,8 @@ const buildUser = (overrides: Record<string, unknown> = {}): UserDocument =>
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockedAssertPasswordMeetsPolicy.mockResolvedValue(undefined);
+  mockedSettingsService.getSecurity.mockResolvedValue(SECURITY_SETTINGS);
 });
 
 describe('forgotPassword', () => {

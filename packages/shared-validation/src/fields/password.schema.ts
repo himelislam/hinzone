@@ -1,8 +1,9 @@
 import { z } from 'zod';
 
 // Baseline structural policy matching docs/21-validation-rules.md's default password
-// policy example. This is a fallback for initial setup; once the Settings module ships,
-// AuthService must re-validate passwords against the live Security Settings policy.
+// policy example, enforced at the HTTP boundary before a request ever reaches a
+// service. apps/server/src/modules/auth/password-policy.helpers.ts re-validates
+// against the live, admin-configured Security Settings policy on top of this.
 export const passwordSchema = z
   .string()
   .min(8, 'Password must be at least 8 characters.')

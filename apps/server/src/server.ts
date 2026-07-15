@@ -2,6 +2,7 @@ import type { Server } from 'node:http';
 
 import { env } from '@/config/environment';
 import { connectDatabase, disconnectDatabase } from '@/database/connection';
+import { settingsService } from '@/modules/settings/settings.service';
 import { toErrorMessage } from '@/shared/helpers/to-error-message';
 import { logger } from '@/shared/logger';
 
@@ -48,6 +49,15 @@ const shutdown = (server: Server, reason: string): void => {
 
 const startServer = async (): Promise<void> => {
   await connectDatabase();
+
+  // docs/20-settings-system.md #23 / backend_rules.md #7: settings must be cached
+  // before the app starts serving requests, not lazily loaded on whichever
+  // category happens to be requested first. Requires `pnpm run seed:settings` to
+  // have already run at least once - an empty result here just means the cache
+  // starts cold and getByCategory()'s existing lazy-load/NotFoundError fallback
+  // takes over, same as it always has.
+  await settingsService.warmCache();
+  logger.info('Settings cache warmed.');
 
   const server = app.listen(env.SERVER_PORT, () => {
     logger.info(`Server listening on port ${env.SERVER_PORT}.`);
