@@ -1,10 +1,21 @@
 import { randomInt } from 'node:crypto';
-import { AccountStatus, SettingsCategory, UserRole } from 'shared-types';
+import {
+  AccountStatus,
+  SettingsCategory,
+  TransactionCategory,
+  TransactionStatus,
+  TransactionType,
+  UserRole,
+} from 'shared-types';
 
 import { signAccessToken } from '@/config/jwt';
 import { SETTINGS_DEFAULTS } from '@/database/seed/settings-defaults';
 import { User } from '@/modules/users/users.model';
 import type { IUser, UserDocument } from '@/modules/users/users.types';
+import { Transaction } from '@/modules/wallet/transaction.model';
+import type { ITransaction, TransactionDocument } from '@/modules/wallet/transaction.types';
+import { Wallet } from '@/modules/wallet/wallet.model';
+import type { IWallet, WalletDocument } from '@/modules/wallet/wallet.types';
 
 export const DEFAULT_TEST_PASSWORD = 'TestPass123!';
 
@@ -86,3 +97,50 @@ export const buildAccessToken = (user: UserDocument): string =>
   );
 
 export const authHeaderFor = (user: UserDocument): string => `Bearer ${buildAccessToken(user)}`;
+
+// Wallet factories.
+
+// Persists a wallet directly through the Mongoose model, bypassing
+// walletService.createWallet - lets integration/service tests set up a fixture
+// wallet (with an arbitrary starting balance/status) without needing a real
+// registration flow.
+export const createTestWallet = (
+  user: UserDocument,
+  overrides: Partial<IWallet> = {},
+): Promise<WalletDocument> =>
+  Wallet.create({
+    userId: user._id,
+    currency: 'BDT',
+    ...overrides,
+  });
+
+// Unique per call within a test file - avoids colliding with
+// transaction.model.ts's unique index on transactionNumber across fixtures.
+let transactionCounter = 0;
+
+export const uniqueTransactionNumber = (): string => {
+  transactionCounter += 1;
+
+  return `TRX-TEST-${Date.now().toString(36)}${transactionCounter}`;
+};
+
+// Persists a transaction directly through the Mongoose model, bypassing
+// walletService.credit/debit - lets tests seed ledger fixtures without needing
+// a replica-set-backed MongoDB (see test/db-transactional.ts).
+export const createTestTransaction = (
+  wallet: WalletDocument,
+  overrides: Partial<ITransaction> = {},
+): Promise<TransactionDocument> =>
+  Transaction.create({
+    transactionNumber: uniqueTransactionNumber(),
+    walletId: wallet._id,
+    userId: wallet.userId,
+    type: TransactionType.CREDIT,
+    category: TransactionCategory.DEPOSIT,
+    amount: 100,
+    balanceBefore: 0,
+    balanceAfter: 100,
+    currency: wallet.currency,
+    status: TransactionStatus.COMPLETED,
+    ...overrides,
+  });

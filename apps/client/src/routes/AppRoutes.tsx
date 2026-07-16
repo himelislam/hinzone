@@ -20,8 +20,10 @@ import LoginPage from '@/pages/auth/LoginPage';
 import RegisterPage from '@/pages/auth/RegisterPage';
 import ResetPasswordPage from '@/pages/auth/ResetPasswordPage';
 import DashboardPage from '@/pages/dashboard/DashboardPage';
+import TransactionHistoryPage from '@/pages/history/TransactionHistoryPage';
 import EditProfilePage from '@/pages/profile/EditProfilePage';
 import ProfilePage from '@/pages/profile/ProfilePage';
+import WalletDashboardPage from '@/pages/wallet/WalletDashboardPage';
 
 import AdminRoute from './AdminRoute';
 import ProtectedRoute from './ProtectedRoute';
@@ -50,10 +52,10 @@ const AppRoutes = (): JSX.Element => {
       <Route element={<ProtectedRoute />}>
         <Route element={<DashboardLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/wallet" element={<RoutePlaceholder title="Wallet" />} />
+          <Route path="/wallet" element={<WalletDashboardPage />} />
           <Route path="/stocks" element={<RoutePlaceholder title="Stocks" />} />
           <Route path="/portfolio" element={<RoutePlaceholder title="Portfolio" />} />
-          <Route path="/history" element={<RoutePlaceholder title="History" />} />
+          <Route path="/history" element={<TransactionHistoryPage />} />
           <Route path="/refer" element={<RoutePlaceholder title="Refer" />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/profile/edit" element={<EditProfilePage />} />

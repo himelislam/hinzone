@@ -6,11 +6,30 @@ services:
       - '27017:27017'
     volumes:
       - mongo-data:/data/db
+    # WalletService.credit/debit (apps/server/src/modules/wallet/wallet-balance.service.ts)
+    # open a real MongoDB session/transaction, which a standalone mongod rejects
+    # outright - `--replSet rs0` runs it as a single-node replica set instead, the
+    # minimum topology that supports multi-document transactions.
+    command: ['--replSet', 'rs0']
     healthcheck:
-      test: ['CMD', 'mongosh', '--eval', "db.adminCommand('ping')"]
-      interval: 10s
+      # A fresh replica-set-mode mongod does not auto-initiate itself. This
+      # idempotently initiates it the first time the healthcheck runs (rs.status()
+      # throws until initiated) and just reports readiness on every run after -
+      # `host: 'mongo:27017'` (the compose service name, not localhost) is what the
+      # `server` container's driver actually resolves once it discovers the replica
+      # set topology from this node.
+      test:
+        [
+          'CMD',
+          'mongosh',
+          '--quiet',
+          '--eval',
+          "try { rs.status().ok } catch (e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'mongo:27017' }] }).ok }",
+        ]
+      interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 20
+      start_period: 10s
 
   server:
     build:
@@ -20,7 +39,7 @@ services:
     env_file:
       - .env
     environment:
-      MONGODB_URI: mongodb://mongo:27017/stock-platform
+      MONGODB_URI: mongodb://mongo:27017/stock-platform?replicaSet=rs0
     ports:
       - '5000:5000'
     depends_on:

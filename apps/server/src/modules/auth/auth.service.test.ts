@@ -4,6 +4,7 @@ import { compareDummyPassword } from '@/config/bcrypt';
 import { verifyRefreshToken } from '@/config/jwt';
 import { SETTINGS_DEFAULTS } from '@/database/seed/settings-defaults';
 import { settingsService } from '@/modules/settings/settings.service';
+import { walletService } from '@/modules/wallet/wallet.service';
 import { AuthenticationError, NotFoundError } from '@/shared/errors';
 
 import { auditLogRepository } from '../audit-log/audit-log.repository';
@@ -28,6 +29,7 @@ jest.mock('./session.repository');
 jest.mock('@/config/jwt');
 jest.mock('@/config/bcrypt');
 jest.mock('@/modules/settings/settings.service');
+jest.mock('@/modules/wallet/wallet.service');
 
 const mockedUserRepository = jest.mocked(userRepository);
 const mockedUserService = jest.mocked(userService);
@@ -39,12 +41,16 @@ const mockedSessionRepository = jest.mocked(sessionRepository);
 const mockedVerifyRefreshToken = jest.mocked(verifyRefreshToken);
 const mockedCompareDummyPassword = jest.mocked(compareDummyPassword);
 const mockedSettingsService = jest.mocked(settingsService);
+const mockedWalletService = jest.mocked(walletService);
 
 const FAKE_TOKENS = { accessToken: 'access', refreshToken: 'refresh', expiresIn: 900 };
 
 // The real seeded defaults - handleFailedLogin's maximumLoginAttempts/
 // accountLockDurationMinutes come from here now instead of securityConfig.
 const SECURITY_SETTINGS = SETTINGS_DEFAULTS[SettingsCategory.SECURITY];
+
+// register() reads defaultCurrency from here to provision the new user's wallet.
+const CURRENCY_SETTINGS = SETTINGS_DEFAULTS[SettingsCategory.CURRENCY];
 
 const buildUser = (overrides: Record<string, unknown> = {}): UserDocument =>
   ({
@@ -65,6 +71,8 @@ beforeEach(() => {
   mockedTokenService.rotateRefreshToken.mockResolvedValue(FAKE_TOKENS);
   mockedAssertPasswordMeetsPolicy.mockResolvedValue(undefined);
   mockedSettingsService.getSecurity.mockResolvedValue(SECURITY_SETTINGS);
+  mockedSettingsService.getCurrency.mockResolvedValue(CURRENCY_SETTINGS);
+  mockedWalletService.createWallet.mockResolvedValue({} as never);
   // jest.clearAllMocks() only clears call history, not custom implementations -
   // re-establish the "token is valid" default here so only the test that
   // specifically wants a verification failure needs to override it.
@@ -107,6 +115,23 @@ describe('register', () => {
     });
 
     expect(mockedUserService.validateSponsorExists).not.toHaveBeenCalled();
+  });
+
+  it('provisions a wallet for the new user using the default currency', async () => {
+    const newUser = buildUser();
+    mockedUserService.createUser.mockResolvedValue(newUser);
+
+    await authService.register({
+      fullName: 'Test User',
+      username: 'testuser',
+      phoneNumber: '01712345678',
+      password: 'TestPass123!',
+    });
+
+    expect(mockedWalletService.createWallet).toHaveBeenCalledWith(
+      newUser.id,
+      CURRENCY_SETTINGS.defaultCurrency,
+    );
   });
 
   it('starts a session and logs USER_REGISTERED, returning the user and tokens', async () => {

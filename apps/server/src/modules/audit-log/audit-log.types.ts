@@ -56,6 +56,9 @@ export const AUDIT_ACTIONS = {
   // category itself is already captured in entityId; before/after carry the
   // actual previous/new values.
   SETTINGS_UPDATED: 'SETTINGS_UPDATED',
+  // tasks/phase-04.md - "Every adjustment requires: Reason, Admin
+  // authentication, Audit log." before/after carry balanceBefore/balanceAfter.
+  WALLET_ADJUSTED: 'WALLET_ADJUSTED',
 } as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS];

@@ -7,3 +7,4 @@ export * from './fields/referral-id.schema';
 export * from './fields/currency-rate.schema';
 export * from './fields/percentage.schema';
 export * from './fields/package-amount.schema';
+export * from './fields/amount.schema';

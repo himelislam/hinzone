@@ -3,6 +3,7 @@ import type { AuthTokens } from 'shared-types';
 import { compareDummyPassword } from '@/config/bcrypt';
 import { verifyRefreshToken } from '@/config/jwt';
 import { settingsService } from '@/modules/settings/settings.service';
+import { walletService } from '@/modules/wallet/wallet.service';
 import { AuthenticationError, NotFoundError } from '@/shared/errors';
 import { hashToken } from '@/shared/helpers/hash-token';
 
@@ -40,6 +41,16 @@ const register = async (
     password: input.password,
     referrerId: sponsor?._id,
   });
+
+  // Wallet creation is not itself a financial operation (backend_rules.md #9's
+  // transaction-required list names Deposit/Withdrawal Approval, Stock
+  // Purchase/Sale, and Wallet Adjustment - never wallet provisioning), and
+  // walletService.createWallet is idempotent, so this runs as a follow-up step
+  // rather than inside a MongoDB transaction with the user write above. A real
+  // multi-document transaction here would also require MongoDB to run as a
+  // replica set, which this platform's current deployment does not.
+  const { defaultCurrency } = await settingsService.getCurrency();
+  await walletService.createWallet(user.id, defaultCurrency);
 
   const tokens = await tokenService.startSession(user, context);
 
