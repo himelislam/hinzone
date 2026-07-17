@@ -59,6 +59,10 @@ export const AUDIT_ACTIONS = {
   // tasks/phase-04.md - "Every adjustment requires: Reason, Admin
   // authentication, Audit log." before/after carry balanceBefore/balanceAfter.
   WALLET_ADJUSTED: 'WALLET_ADJUSTED',
+  // tasks/phase-05.md's Approval/Rejection Workflows - before/after carry the
+  // deposit's previous/new status (plus adminNote/rejectionReason on after).
+  DEPOSIT_APPROVED: 'DEPOSIT_APPROVED',
+  DEPOSIT_REJECTED: 'DEPOSIT_REJECTED',
 } as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS];

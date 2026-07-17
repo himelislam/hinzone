@@ -4,6 +4,8 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import AdminLayout from '@/layouts/AdminLayout';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import PublicLayout from '@/layouts/PublicLayout';
+import AdminDepositDetailPage from '@/pages/admin/deposit/AdminDepositDetailPage';
+import AdminDepositsPage from '@/pages/admin/deposit/AdminDepositsPage';
 import AdminSettingsPage from '@/pages/admin/settings/AdminSettingsPage';
 import CurrencySettingsPage from '@/pages/admin/settings/CurrencySettingsPage';
 import DepositSettingsPage from '@/pages/admin/settings/DepositSettingsPage';
@@ -20,6 +22,9 @@ import LoginPage from '@/pages/auth/LoginPage';
 import RegisterPage from '@/pages/auth/RegisterPage';
 import ResetPasswordPage from '@/pages/auth/ResetPasswordPage';
 import DashboardPage from '@/pages/dashboard/DashboardPage';
+import DepositDashboardPage from '@/pages/deposit/DepositDashboardPage';
+import DepositDetailsPage from '@/pages/deposit/DepositDetailsPage';
+import DepositHistoryPage from '@/pages/deposit/DepositHistoryPage';
 import TransactionHistoryPage from '@/pages/history/TransactionHistoryPage';
 import EditProfilePage from '@/pages/profile/EditProfilePage';
 import ProfilePage from '@/pages/profile/ProfilePage';
@@ -53,6 +58,9 @@ const AppRoutes = (): JSX.Element => {
         <Route element={<DashboardLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/wallet" element={<WalletDashboardPage />} />
+          <Route path="/deposits" element={<DepositHistoryPage />} />
+          <Route path="/deposits/new" element={<DepositDashboardPage />} />
+          <Route path="/deposits/:id" element={<DepositDetailsPage />} />
           <Route path="/stocks" element={<RoutePlaceholder title="Stocks" />} />
           <Route path="/portfolio" element={<RoutePlaceholder title="Portfolio" />} />
           <Route path="/history" element={<TransactionHistoryPage />} />
@@ -67,6 +75,8 @@ const AppRoutes = (): JSX.Element => {
         <Route element={<AdminRoute />}>
           <Route element={<AdminLayout />}>
             <Route path="/admin" element={<RoutePlaceholder title="Admin Dashboard" />} />
+            <Route path="/admin/deposits" element={<AdminDepositsPage />} />
+            <Route path="/admin/deposits/:id" element={<AdminDepositDetailPage />} />
             <Route path="/admin/settings" element={<AdminSettingsPage />} />
             <Route path="/admin/settings/general" element={<GeneralSettingsPage />} />
             <Route path="/admin/settings/currency" element={<CurrencySettingsPage />} />

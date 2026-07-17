@@ -4,6 +4,7 @@ import DashboardShell from './DashboardShell';
 
 const ADMIN_NAV_ITEMS = [
   { label: 'Dashboard', to: '/admin' },
+  { label: 'Deposits', to: '/admin/deposits' },
   { label: 'Settings', to: '/admin/settings' },
 ] as const;
 

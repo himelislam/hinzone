@@ -6,3 +6,4 @@ export * from './wallet-statuses.constants';
 export * from './transaction-types.constants';
 export * from './transaction-categories.constants';
 export * from './transaction-statuses.constants';
+export * from './deposit-statuses.constants';

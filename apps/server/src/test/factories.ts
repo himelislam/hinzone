@@ -1,6 +1,7 @@
 import { randomInt } from 'node:crypto';
 import {
   AccountStatus,
+  DepositStatus,
   SettingsCategory,
   TransactionCategory,
   TransactionStatus,
@@ -10,6 +11,8 @@ import {
 
 import { signAccessToken } from '@/config/jwt';
 import { SETTINGS_DEFAULTS } from '@/database/seed/settings-defaults';
+import { Deposit } from '@/modules/deposit/deposit.model';
+import type { DepositDocument, IDeposit } from '@/modules/deposit/deposit.types';
 import { User } from '@/modules/users/users.model';
 import type { IUser, UserDocument } from '@/modules/users/users.types';
 import { Transaction } from '@/modules/wallet/transaction.model';
@@ -142,5 +145,43 @@ export const createTestTransaction = (
     balanceAfter: 100,
     currency: wallet.currency,
     status: TransactionStatus.COMPLETED,
+    ...overrides,
+  });
+
+// Deposit factories.
+
+// Unique per call within a test file - avoids colliding with
+// deposit.model.ts's unique index on depositNumber across fixtures. Also
+// reused for paymentReference, which has no uniqueness constraint but benefits
+// from being distinct across fixtures in the same test.
+let depositCounter = 0;
+
+export const uniqueDepositNumber = (): string => {
+  depositCounter += 1;
+
+  return `DEP-TEST-${Date.now().toString(36)}${depositCounter}`;
+};
+
+// Persists a deposit directly through the Mongoose model, bypassing
+// depositService.createDeposit - lets tests seed a PENDING (or any other
+// status) fixture without needing Settings validation or a mocked Cloudinary
+// upload. Defaults match the seeded DEPOSIT settings defaults (settings-defaults.ts)
+// so a fixture is valid against them without every test needing to override amount.
+export const createTestDeposit = (
+  user: UserDocument,
+  wallet: WalletDocument,
+  overrides: Partial<IDeposit> = {},
+): Promise<DepositDocument> =>
+  Deposit.create({
+    depositNumber: uniqueDepositNumber(),
+    userId: user._id,
+    walletId: wallet._id,
+    amount: 3000,
+    currency: wallet.currency,
+    paymentMethod: 'bKash',
+    senderAccountNumber: '01712345678',
+    paymentReference: uniqueDepositNumber(),
+    screenshotUrl: 'https://res.cloudinary.com/test-cloud/image/upload/mock-deposit.jpg',
+    status: DepositStatus.PENDING,
     ...overrides,
   });

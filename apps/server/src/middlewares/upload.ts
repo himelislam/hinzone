@@ -35,3 +35,10 @@ const upload = multer({
 });
 
 export const uploadAvatar: RequestHandler = upload.single('image');
+
+// tasks/phase-05.md's Deposit Screenshot Upload - same memory-storage multer
+// instance (config, size limit, fileFilter) as uploadAvatar, per
+// shared/helpers/upload-image.ts's "generic across future upload use cases"
+// rationale - only the multipart field name and destination Cloudinary folder
+// differ per use case.
+export const uploadDepositScreenshot: RequestHandler = upload.single('screenshot');
