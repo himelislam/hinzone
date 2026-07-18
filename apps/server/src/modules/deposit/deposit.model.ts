@@ -81,5 +81,11 @@ const depositSchema = new Schema<IDeposit, DepositModel>(
 depositSchema.index({ userId: 1, createdAt: -1 });
 depositSchema.index({ status: 1, createdAt: -1 });
 depositSchema.index({ paymentMethod: 1 });
+// Backs deposit.repository.ts's findEarliestApprovedByUserId (added for
+// WithdrawalService's waiting-period check, tasks/breakdown/phase-06-tasks.md
+// task 10) - an equality prefix on userId+status with createdAt as the sort
+// key, so the query can use this index directly instead of falling back to
+// the userId+createdAt index and filtering status in memory.
+depositSchema.index({ userId: 1, status: 1, createdAt: 1 });
 
 export const Deposit = model<IDeposit, DepositModel>('Deposit', depositSchema, 'deposits');

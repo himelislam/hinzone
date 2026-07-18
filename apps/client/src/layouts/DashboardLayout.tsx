@@ -6,6 +6,7 @@ const DASHBOARD_NAV_ITEMS = [
   { label: 'Dashboard', to: '/dashboard' },
   { label: 'Wallet', to: '/wallet' },
   { label: 'Deposits', to: '/deposits' },
+  { label: 'Withdrawals', to: '/withdrawals' },
   { label: 'Stocks', to: '/stocks' },
   { label: 'Portfolio', to: '/portfolio' },
   { label: 'History', to: '/history' },

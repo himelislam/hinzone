@@ -10,3 +10,4 @@ export * from './fields/package-amount.schema';
 export * from './fields/amount.schema';
 export * from './fields/payment-reference.schema';
 export * from './fields/sender-account-number.schema';
+export * from './fields/receiver-account-number.schema';

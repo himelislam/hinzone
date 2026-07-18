@@ -7,6 +7,7 @@ import {
   TransactionStatus,
   TransactionType,
   UserRole,
+  WithdrawalStatus,
 } from 'shared-types';
 
 import { signAccessToken } from '@/config/jwt';
@@ -19,6 +20,8 @@ import { Transaction } from '@/modules/wallet/transaction.model';
 import type { ITransaction, TransactionDocument } from '@/modules/wallet/transaction.types';
 import { Wallet } from '@/modules/wallet/wallet.model';
 import type { IWallet, WalletDocument } from '@/modules/wallet/wallet.types';
+import { Withdrawal } from '@/modules/withdrawal/withdrawal.model';
+import type { IWithdrawal, WithdrawalDocument } from '@/modules/withdrawal/withdrawal.types';
 
 export const DEFAULT_TEST_PASSWORD = 'TestPass123!';
 
@@ -183,5 +186,68 @@ export const createTestDeposit = (
     paymentReference: uniqueDepositNumber(),
     screenshotUrl: 'https://res.cloudinary.com/test-cloud/image/upload/mock-deposit.jpg',
     status: DepositStatus.PENDING,
+    // Mongoose's timestamps plugin only auto-populates createdAt when it isn't
+    // already provided on the document passed to create() (setDocumentTimestamps.js:
+    // `!doc.$__getValue(createdAt)`), so a caller-supplied value in `overrides`
+    // (e.g. to backdate an approved deposit past a withdrawal waiting period)
+    // is respected rather than silently overwritten.
+    ...overrides,
+  });
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// Seeds an approved deposit `daysAgo` days old - used by withdrawal tests to
+// establish (or deliberately fall short of) a waiting-period eligibility
+// window (settings-defaults.ts's seeded WITHDRAWAL.waitingPeriodDays).
+// Extracted here rather than left as a private per-file helper - it was
+// independently duplicated (with the `daysAgo` parameter silently dropped in
+// one copy) across withdrawal.service.test.ts and the withdrawal-api
+// integration test before this consolidation.
+export const createEligibleApprovedDeposit = (
+  user: UserDocument,
+  wallet: WalletDocument,
+  daysAgo = 20,
+): Promise<DepositDocument> =>
+  createTestDeposit(user, wallet, {
+    status: DepositStatus.APPROVED,
+    createdAt: new Date(Date.now() - daysAgo * DAY_MS),
+  });
+
+// Withdrawal factories.
+
+// Unique per call within a test file - avoids colliding with
+// withdrawal.model.ts's unique index on withdrawalNumber across fixtures.
+let withdrawalCounter = 0;
+
+export const uniqueWithdrawalNumber = (): string => {
+  withdrawalCounter += 1;
+
+  return `WD-TEST-${Date.now().toString(36)}${withdrawalCounter}`;
+};
+
+// Persists a withdrawal directly through the Mongoose model, bypassing
+// withdrawalService.createWithdrawal - lets tests seed a PENDING (or any
+// other status) fixture without needing Settings validation, a real wallet
+// balance check, or a seeded approved deposit. Defaults match the seeded
+// WITHDRAWAL settings defaults (settings-defaults.ts: minimumWithdrawal 1000,
+// withdrawalFeePercentage 5%) so a fixture is valid against them without
+// every test needing to override amount.
+export const createTestWithdrawal = (
+  user: UserDocument,
+  wallet: WalletDocument,
+  overrides: Partial<IWithdrawal> = {},
+): Promise<WithdrawalDocument> =>
+  Withdrawal.create({
+    withdrawalNumber: uniqueWithdrawalNumber(),
+    userId: user._id,
+    walletId: wallet._id,
+    amount: 1000,
+    withdrawalFee: 50,
+    netAmount: 950,
+    currency: wallet.currency,
+    paymentMethod: 'bKash',
+    receiverAccountNumber: '01712345678',
+    accountHolderName: 'Test User',
+    status: WithdrawalStatus.PENDING,
     ...overrides,
   });

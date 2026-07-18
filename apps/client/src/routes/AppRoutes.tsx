@@ -17,6 +17,8 @@ import SecuritySettingsPage from '@/pages/admin/settings/SecuritySettingsPage';
 import StockSettingsPage from '@/pages/admin/settings/StockSettingsPage';
 import TradingSettingsPage from '@/pages/admin/settings/TradingSettingsPage';
 import WithdrawalSettingsPage from '@/pages/admin/settings/WithdrawalSettingsPage';
+import AdminWithdrawalDetailPage from '@/pages/admin/withdrawal/AdminWithdrawalDetailPage';
+import AdminWithdrawalsPage from '@/pages/admin/withdrawal/AdminWithdrawalsPage';
 import ForgotPasswordPage from '@/pages/auth/ForgotPasswordPage';
 import LoginPage from '@/pages/auth/LoginPage';
 import RegisterPage from '@/pages/auth/RegisterPage';
@@ -29,6 +31,9 @@ import TransactionHistoryPage from '@/pages/history/TransactionHistoryPage';
 import EditProfilePage from '@/pages/profile/EditProfilePage';
 import ProfilePage from '@/pages/profile/ProfilePage';
 import WalletDashboardPage from '@/pages/wallet/WalletDashboardPage';
+import WithdrawalDashboardPage from '@/pages/withdrawal/WithdrawalDashboardPage';
+import WithdrawalDetailsPage from '@/pages/withdrawal/WithdrawalDetailsPage';
+import WithdrawalHistoryPage from '@/pages/withdrawal/WithdrawalHistoryPage';
 
 import AdminRoute from './AdminRoute';
 import ProtectedRoute from './ProtectedRoute';
@@ -61,6 +66,9 @@ const AppRoutes = (): JSX.Element => {
           <Route path="/deposits" element={<DepositHistoryPage />} />
           <Route path="/deposits/new" element={<DepositDashboardPage />} />
           <Route path="/deposits/:id" element={<DepositDetailsPage />} />
+          <Route path="/withdrawals" element={<WithdrawalHistoryPage />} />
+          <Route path="/withdrawals/new" element={<WithdrawalDashboardPage />} />
+          <Route path="/withdrawals/:id" element={<WithdrawalDetailsPage />} />
           <Route path="/stocks" element={<RoutePlaceholder title="Stocks" />} />
           <Route path="/portfolio" element={<RoutePlaceholder title="Portfolio" />} />
           <Route path="/history" element={<TransactionHistoryPage />} />
@@ -77,6 +85,8 @@ const AppRoutes = (): JSX.Element => {
             <Route path="/admin" element={<RoutePlaceholder title="Admin Dashboard" />} />
             <Route path="/admin/deposits" element={<AdminDepositsPage />} />
             <Route path="/admin/deposits/:id" element={<AdminDepositDetailPage />} />
+            <Route path="/admin/withdrawals" element={<AdminWithdrawalsPage />} />
+            <Route path="/admin/withdrawals/:id" element={<AdminWithdrawalDetailPage />} />
             <Route path="/admin/settings" element={<AdminSettingsPage />} />
             <Route path="/admin/settings/general" element={<GeneralSettingsPage />} />
             <Route path="/admin/settings/currency" element={<CurrencySettingsPage />} />

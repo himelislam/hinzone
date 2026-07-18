@@ -15,6 +15,7 @@ export const WALLET_QUERY_KEYS = {
   summary: ['wallet', 'summary'] as const,
   transactions: (params: TransactionListParams = {}) => ['wallet', 'transactions', params] as const,
   transaction: (id: string) => ['wallet', 'transactions', id] as const,
+  adminWallet: (id: string) => ['wallet', 'admin', 'detail', id] as const,
 };
 
 // A wallet balance should reflect a deposit/withdrawal/trade soon after it
@@ -63,6 +64,21 @@ export const useWalletTransaction = (id: string): UseQueryResult<Transaction, Er
   return useQuery({
     queryKey: WALLET_QUERY_KEYS.transaction(id),
     queryFn: () => walletService.getTransactionById(id),
+    enabled: isAuthenticated && Boolean(id),
+    staleTime: WALLET_STALE_TIME_MS,
+  });
+};
+
+// Reuses walletService.adminGetWalletById (already built in Phase 04, just
+// not previously wired to a query hook) - needed by
+// AdminWithdrawalDetailPage to show the "Wallet Balance" line
+// tasks/phase-06.md's Admin Approval Screen spec calls for.
+export const useAdminWallet = (id: string): UseQueryResult<Wallet, Error> => {
+  const { isAuthenticated } = useAuth();
+
+  return useQuery({
+    queryKey: WALLET_QUERY_KEYS.adminWallet(id),
+    queryFn: () => walletService.adminGetWalletById(id),
     enabled: isAuthenticated && Boolean(id),
     staleTime: WALLET_STALE_TIME_MS,
   });

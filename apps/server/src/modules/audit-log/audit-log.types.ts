@@ -63,6 +63,17 @@ export const AUDIT_ACTIONS = {
   // deposit's previous/new status (plus adminNote/rejectionReason on after).
   DEPOSIT_APPROVED: 'DEPOSIT_APPROVED',
   DEPOSIT_REJECTED: 'DEPOSIT_REJECTED',
+  // tasks/phase-06.md's Approval/Rejection/Processing/Completion Workflows -
+  // before/after carry the withdrawal's previous/new status (plus adminNote/
+  // rejectionReason on after where applicable). WITHDRAWAL_COMPLETED is the
+  // one action tied to an actual wallet debit (tasks/breakdown/phase-06-tasks.md's
+  // "decision 1") - its own before/after still only carry status, since
+  // balance history already lives on the ledger Transaction created by
+  // WalletService.debit(), same reasoning DEPOSIT_APPROVED's audit log uses.
+  WITHDRAWAL_APPROVED: 'WITHDRAWAL_APPROVED',
+  WITHDRAWAL_REJECTED: 'WITHDRAWAL_REJECTED',
+  WITHDRAWAL_PROCESSING: 'WITHDRAWAL_PROCESSING',
+  WITHDRAWAL_COMPLETED: 'WITHDRAWAL_COMPLETED',
 } as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS];

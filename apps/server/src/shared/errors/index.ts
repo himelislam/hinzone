@@ -9,3 +9,5 @@ export { WalletNotActiveError } from './wallet-not-active-error';
 export { InsufficientBalanceError } from './insufficient-balance-error';
 export { DepositNotFoundError } from './deposit-not-found-error';
 export { DepositNotPendingError } from './deposit-not-pending-error';
+export { WithdrawalNotFoundError } from './withdrawal-not-found-error';
+export { WithdrawalInvalidTransitionError } from './withdrawal-invalid-transition-error';

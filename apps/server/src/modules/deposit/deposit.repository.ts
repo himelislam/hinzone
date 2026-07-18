@@ -1,4 +1,5 @@
 import type { ClientSession, QueryFilter, Types } from 'mongoose';
+import { DepositStatus } from 'shared-types';
 
 import { escapeRegExp } from '@/shared/helpers/escape-regex';
 
@@ -30,6 +31,17 @@ const findById = async (id: string, session?: ClientSession): Promise<DepositDoc
 
 const findByDepositNumber = async (depositNumber: string): Promise<DepositDocument | null> => {
   return Deposit.findOne({ depositNumber }).exec();
+};
+
+// tasks/breakdown/phase-06-tasks.md task 10 - backs WithdrawalService's
+// waiting-period check (tasks/phase-06.md's "Latest Eligible Deposit"): a
+// user's withdrawal eligibility clock starts from their very first APPROVED
+// deposit. Read-only and additive - does not change any existing deposit
+// behavior.
+const findEarliestApprovedByUserId = async (
+  userId: Types.ObjectId,
+): Promise<DepositDocument | null> => {
+  return Deposit.findOne({ userId, status: DepositStatus.APPROVED }).sort({ createdAt: 1 }).exec();
 };
 
 const buildFilterQuery = (
@@ -127,6 +139,7 @@ export const depositRepository = {
   create,
   findById,
   findByDepositNumber,
+  findEarliestApprovedByUserId,
   findByUserId,
   findAllAdmin,
   updateStatus,
