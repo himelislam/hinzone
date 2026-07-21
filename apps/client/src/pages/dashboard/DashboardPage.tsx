@@ -1,10 +1,13 @@
 import type { JSX } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
+import FeaturedStockCard from '@/components/cards/FeaturedStockCard';
 import ProfileCard from '@/components/cards/ProfileCard';
 import LoadingState from '@/components/common/LoadingState';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
+import { useCurrencySettings } from '@/hooks/useSettingsQueries';
+import { useFeaturedStocks } from '@/hooks/useStockQueries';
 
 // Placeholders for modules not yet built (Wallet, Stocks, ...) - each becomes a
 // real feature page in a later phase; this dashboard only needs stable links.
@@ -19,10 +22,20 @@ const QUICK_LINKS = [
 
 const DashboardPage = (): JSX.Element => {
   const { user, isLoading } = useAuth();
+  // Supplementary, not load-bearing - phase-07.md's Featured Stocks "Used
+  // on: ... Dashboard". A loading/error/empty featured-stocks fetch simply
+  // hides this section rather than blocking or degrading the rest of the
+  // dashboard (no ErrorState/LoadingState wired to it, unlike a primary
+  // page's own data).
+  const featuredStocksQuery = useFeaturedStocks();
+  const currencySettingsQuery = useCurrencySettings();
+  const navigate = useNavigate();
 
   if (isLoading || !user) {
     return <LoadingState message="Loading your dashboard..." />;
   }
+
+  const featuredStocks = featuredStocksQuery.data ?? [];
 
   return (
     <div className="space-y-6">
@@ -32,6 +45,28 @@ const DashboardPage = (): JSX.Element => {
       </div>
 
       <ProfileCard user={user} />
+
+      {featuredStocks.length > 0 ? (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">Featured Stocks</h2>
+            <Link to="/stocks/featured" className="text-primary text-sm hover:underline">
+              View all
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {featuredStocks.slice(0, 3).map((stock) => (
+              <FeaturedStockCard
+                key={stock.id}
+                stock={stock}
+                onClick={(clicked) => void navigate(`/stocks/${clicked.id}`)}
+                currencySymbol={currencySettingsQuery.data?.currencySymbol}
+                decimalPrecision={currencySettingsQuery.data?.decimalPrecision}
+              />
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {QUICK_LINKS.map((link) => (

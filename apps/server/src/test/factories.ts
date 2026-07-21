@@ -3,6 +3,7 @@ import {
   AccountStatus,
   DepositStatus,
   SettingsCategory,
+  StockStatus,
   TransactionCategory,
   TransactionStatus,
   TransactionType,
@@ -14,6 +15,8 @@ import { signAccessToken } from '@/config/jwt';
 import { SETTINGS_DEFAULTS } from '@/database/seed/settings-defaults';
 import { Deposit } from '@/modules/deposit/deposit.model';
 import type { DepositDocument, IDeposit } from '@/modules/deposit/deposit.types';
+import { Stock } from '@/modules/stock/stock.model';
+import type { IStock, StockDocument } from '@/modules/stock/stock.types';
 import { User } from '@/modules/users/users.model';
 import type { IUser, UserDocument } from '@/modules/users/users.types';
 import { Transaction } from '@/modules/wallet/transaction.model';
@@ -249,5 +252,49 @@ export const createTestWithdrawal = (
     receiverAccountNumber: '01712345678',
     accountHolderName: 'Test User',
     status: WithdrawalStatus.PENDING,
+    ...overrides,
+  });
+
+// Stock factories.
+
+// Unique per call within a test file - avoids colliding with
+// stock.model.ts's unique index on symbol across fixtures. Pure A-Z0-9,
+// length <= 10, satisfying stockSymbolSchema's shape constraint even though
+// these fixtures are written directly through the model, bypassing Zod.
+let stockCounter = 0;
+
+export const uniqueStockSymbol = (): string => {
+  stockCounter += 1;
+
+  return `${Date.now().toString(36)}${stockCounter}`.toUpperCase().slice(-10);
+};
+
+// Persists a stock directly through the Mongoose model, bypassing
+// stockAdminService.createStock - lets tests seed an ACTIVE (or any other
+// status) fixture without needing Settings validation or a mocked Cloudinary
+// upload. Defaults are valid against the seeded STOCK settings defaults
+// (settings-defaults.ts: minimumPurchase 1, maximumPurchase 1000).
+export const createTestStock = (overrides: Partial<IStock> = {}): Promise<StockDocument> =>
+  Stock.create({
+    symbol: uniqueStockSymbol(),
+    name: 'Test Company',
+    companyName: 'Test Company Inc.',
+    description: 'A test stock fixture.',
+    category: 'Technology',
+    industry: 'Software',
+    currentPrice: 100,
+    previousPrice: 100,
+    currency: 'BDT',
+    dailyChange: 0,
+    dailyChangePercentage: 0,
+    totalShares: 1000,
+    availableShares: 1000,
+    minimumPurchase: 10,
+    maximumPurchase: 500,
+    allowFractionalShares: false,
+    dividendEnabled: false,
+    status: StockStatus.ACTIVE,
+    featured: false,
+    displayOrder: 0,
     ...overrides,
   });

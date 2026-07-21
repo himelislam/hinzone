@@ -16,6 +16,13 @@ export const uploadImage = async (
     resource_type: 'image',
     public_id: publicId,
     overwrite: Boolean(publicId),
+    // `mimetype` is a client-supplied request header, not verified against the
+    // file's actual bytes - an SVG (allowed for admin-only stock logo uploads,
+    // middlewares/upload.ts) can embed <script>/event-handler payloads. Cloudinary's
+    // sanitize flag strips those from SVG content on upload; it's a no-op for every
+    // other image type this helper ever receives, so applying it unconditionally
+    // here is safe for the existing avatar/deposit-screenshot call sites too.
+    flags: 'sanitize',
   });
 
   return result.secure_url;

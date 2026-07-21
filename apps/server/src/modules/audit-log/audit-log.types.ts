@@ -74,6 +74,17 @@ export const AUDIT_ACTIONS = {
   WITHDRAWAL_REJECTED: 'WITHDRAWAL_REJECTED',
   WITHDRAWAL_PROCESSING: 'WITHDRAWAL_PROCESSING',
   WITHDRAWAL_COMPLETED: 'WITHDRAWAL_COMPLETED',
+  // tasks/phase-07.md's Audit Logs section - six named catalog-management
+  // events. STOCK_ARCHIVED is distinct from STOCK_STATUS_CHANGED even though
+  // both write the same `status` field, so "the stock was archived" is
+  // searchable as its own event rather than requiring a filter over
+  // STOCK_STATUS_CHANGED's `after.status` value.
+  STOCK_CREATED: 'STOCK_CREATED',
+  STOCK_UPDATED: 'STOCK_UPDATED',
+  STOCK_PRICE_UPDATED: 'STOCK_PRICE_UPDATED',
+  STOCK_STATUS_CHANGED: 'STOCK_STATUS_CHANGED',
+  STOCK_ARCHIVED: 'STOCK_ARCHIVED',
+  STOCK_DELETED: 'STOCK_DELETED',
 } as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS];

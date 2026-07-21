@@ -11,3 +11,5 @@ export { DepositNotFoundError } from './deposit-not-found-error';
 export { DepositNotPendingError } from './deposit-not-pending-error';
 export { WithdrawalNotFoundError } from './withdrawal-not-found-error';
 export { WithdrawalInvalidTransitionError } from './withdrawal-invalid-transition-error';
+export { StockNotFoundError } from './stock-not-found-error';
+export { StockSymbolAlreadyExistsError } from './stock-symbol-already-exists-error';

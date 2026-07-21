@@ -17,6 +17,9 @@ import SecuritySettingsPage from '@/pages/admin/settings/SecuritySettingsPage';
 import StockSettingsPage from '@/pages/admin/settings/StockSettingsPage';
 import TradingSettingsPage from '@/pages/admin/settings/TradingSettingsPage';
 import WithdrawalSettingsPage from '@/pages/admin/settings/WithdrawalSettingsPage';
+import AdminStockDetailPage from '@/pages/admin/stock/AdminStockDetailPage';
+import AdminStockFormPage from '@/pages/admin/stock/AdminStockFormPage';
+import AdminStocksPage from '@/pages/admin/stock/AdminStocksPage';
 import AdminWithdrawalDetailPage from '@/pages/admin/withdrawal/AdminWithdrawalDetailPage';
 import AdminWithdrawalsPage from '@/pages/admin/withdrawal/AdminWithdrawalsPage';
 import ForgotPasswordPage from '@/pages/auth/ForgotPasswordPage';
@@ -30,6 +33,9 @@ import DepositHistoryPage from '@/pages/deposit/DepositHistoryPage';
 import TransactionHistoryPage from '@/pages/history/TransactionHistoryPage';
 import EditProfilePage from '@/pages/profile/EditProfilePage';
 import ProfilePage from '@/pages/profile/ProfilePage';
+import FeaturedStocksPage from '@/pages/stock/FeaturedStocksPage';
+import StockDetailsPage from '@/pages/stock/StockDetailsPage';
+import StockListingPage from '@/pages/stock/StockListingPage';
 import WalletDashboardPage from '@/pages/wallet/WalletDashboardPage';
 import WithdrawalDashboardPage from '@/pages/withdrawal/WithdrawalDashboardPage';
 import WithdrawalDetailsPage from '@/pages/withdrawal/WithdrawalDetailsPage';
@@ -59,6 +65,19 @@ const AppRoutes = (): JSX.Element => {
         </Route>
       </Route>
 
+      {/* Public stock catalog - phase-07.md's Security section: "Public users
+          may only view active stocks," matching stock.routes.ts carrying no
+          `authenticate` middleware server-side. Still rendered inside
+          DashboardLayout's chrome/nav (DashboardShell has no auth dependency
+          of its own) so a logged-in user browsing here sees the same shell
+          as every other authenticated page, but this block sits outside
+          ProtectedRoute so an anonymous visitor can reach it too. */}
+      <Route element={<DashboardLayout />}>
+        <Route path="/stocks" element={<StockListingPage />} />
+        <Route path="/stocks/featured" element={<FeaturedStocksPage />} />
+        <Route path="/stocks/:id" element={<StockDetailsPage />} />
+      </Route>
+
       <Route element={<ProtectedRoute />}>
         <Route element={<DashboardLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
@@ -69,7 +88,6 @@ const AppRoutes = (): JSX.Element => {
           <Route path="/withdrawals" element={<WithdrawalHistoryPage />} />
           <Route path="/withdrawals/new" element={<WithdrawalDashboardPage />} />
           <Route path="/withdrawals/:id" element={<WithdrawalDetailsPage />} />
-          <Route path="/stocks" element={<RoutePlaceholder title="Stocks" />} />
           <Route path="/portfolio" element={<RoutePlaceholder title="Portfolio" />} />
           <Route path="/history" element={<TransactionHistoryPage />} />
           <Route path="/refer" element={<RoutePlaceholder title="Refer" />} />
@@ -87,6 +105,10 @@ const AppRoutes = (): JSX.Element => {
             <Route path="/admin/deposits/:id" element={<AdminDepositDetailPage />} />
             <Route path="/admin/withdrawals" element={<AdminWithdrawalsPage />} />
             <Route path="/admin/withdrawals/:id" element={<AdminWithdrawalDetailPage />} />
+            <Route path="/admin/stocks" element={<AdminStocksPage />} />
+            <Route path="/admin/stocks/new" element={<AdminStockFormPage />} />
+            <Route path="/admin/stocks/:id/edit" element={<AdminStockFormPage />} />
+            <Route path="/admin/stocks/:id" element={<AdminStockDetailPage />} />
             <Route path="/admin/settings" element={<AdminSettingsPage />} />
             <Route path="/admin/settings/general" element={<GeneralSettingsPage />} />
             <Route path="/admin/settings/currency" element={<CurrencySettingsPage />} />
